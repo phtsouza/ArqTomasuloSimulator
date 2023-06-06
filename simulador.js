@@ -145,8 +145,8 @@ function getUFVazia(tipoUF) {
         }
         return undefined;
     }
-    for (let key in reservationStation) {
-        var uf = reservationStation[key];
+    for (let key in reservationStation.unidadesFuncionais) {
+        var uf = reservationStation.unidadesFuncionais[key];
 
         if (uf.tipoUnidade === tipoUF) {
             if (!uf.ocupado) {
@@ -222,7 +222,7 @@ function escreveEstacaoRegistrador(instrucao, ufNome) {
 function alocaUF(uf, instrucao, estadoInstrucao) {
     uf.instrucao = instrucao;
     uf.estadoInstrucao = estadoInstrucao;
-    uf.tempo = this.getCiclos(instrucao) + 1;
+    uf.tempo = getCiclos(instrucao) + 1;
     uf.ocupado = true;
     uf.operacao = instrucao.operacao;
     uf.destino = instrucao.registradorR;
@@ -233,15 +233,15 @@ function alocaUF(uf, instrucao, estadoInstrucao) {
     let reg_j_inst;
     let reg_k_inst;
 
-    if (instrucao.operacao === 'C.BNEZ' || instrucao.operacao === 'BEQ') {
-        reg_j = this.estacaoRegistradores[instrucao.registradorR];
-        reg_k = this.estacaoRegistradores[instrucao.registradorS];
+    if (instrucao.operacao === 'BNE' || instrucao.operacao === 'BEQ') {
+        reg_j = estacaoRegistradores[instrucao.registradorR];
+        reg_k = estacaoRegistradores[instrucao.registradorS];
 
         reg_j_inst = instrucao.registradorR;
         reg_k_inst = instrucao.registradorS;
     } else {
-        reg_j = this.estacaoRegistradores[instrucao.registradorS];
-        reg_k = this.estacaoRegistradores[instrucao.registradorT];
+        reg_j = estacaoRegistradores[instrucao.registradorS];
+        reg_k = estacaoRegistradores[instrucao.registradorT];
 
         reg_j_inst = instrucao.registradorS;
         reg_k_inst = instrucao.registradorT;
@@ -251,8 +251,8 @@ function alocaUF(uf, instrucao, estadoInstrucao) {
     if (reg_j === null || reg_j === undefined) uf.vj = reg_j_inst;
     else {
         if (
-            reg_j in this.unidadesFuncionais ||
-            reg_j in this.unidadesFuncionaisMemoria
+            reg_j in reservationStation.unidadesFuncionais ||
+            reg_j in memoryReservationStation.unidadesFuncionaisMemoria
         )
             uf.qj = reg_j;
         else uf.vj = reg_j;
@@ -261,15 +261,240 @@ function alocaUF(uf, instrucao, estadoInstrucao) {
     if (reg_k === null || reg_k === undefined) uf.vk = reg_k_inst;
     else {
         if (
-            reg_k in this.unidadesFuncionais ||
-            reg_k in this.unidadesFuncionaisMemoria
+            reg_k in reservationStation.unidadesFuncionais ||
+            reg_k in memoryReservationStation.unidadesFuncionaisMemoria
         )
             uf.qk = reg_k;
         else uf.vk = reg_k;
     }
 }
 
-console.log(estacaoRegistradores)
+function liberaUFEsperandoResultado(UF) {
+
+    for (let keyUF in reservationStation.unidadesFuncionais) {
+        const ufOlhando = reservationStation.unidadesFuncionais[keyUF];
+
+        if (
+            ufOlhando.ocupado === true &&
+            (ufOlhando.qj === UF.nome || ufOlhando.qk === UF.nome)
+        ) {
+            if (ufOlhando.qj === UF.nome) {
+                ufOlhando.vj = 'VAL(' + UF.nome + ')';
+                ufOlhando.qj = null;
+            }
+
+            if (ufOlhando.qk === UF.nome) {
+                ufOlhando.vk = 'VAL(' + UF.nome + ')';
+                ufOlhando.qk = null;
+            }
+
+            if (ufOlhando.qj === null && ufOlhando.qk === null) {
+                ufOlhando.tempo = ufOlhando.tempo - 1;
+            }
+        }
+    }
+
+    for (let keyUF in memoryReservationStation.unidadesFuncionaisMemoria) {
+        const ufOlhando = memoryReservationStation.unidadesFuncionaisMemoria[keyUF];
+
+        if (ufOlhando.ocupado === true) {
+            if (ufOlhando.qi === UF.nome) {
+                ufOlhando.qi = null;
+                ufOlhando.tempo = ufOlhando.tempo - 1;
+            } else if (ufOlhando.qj === UF.nome) {
+                ufOlhando.qj = null;
+                ufOlhando.tempo = ufOlhando.tempo - 1;
+            }
+        }
+    }
+}
+
+function desalocaUFMem(ufMem) {
+    ufMem.instrucao = null;
+    ufMem.estadoInstrucao = null;
+    ufMem.tempo = null;
+    ufMem.ocupado = false;
+    ufMem.operacao = null;
+    ufMem.endereco = null;
+    ufMem.destino = null;
+    ufMem.posicao = null;
+    ufMem.qi = null;
+    ufMem.qj = null;
+}
+
+function desalocaUF(uf) {
+    uf.instrucao = null;
+    uf.estadoInstrucao = null;
+    uf.tempo = null;
+    uf.ocupado = false;
+    uf.operacao = null;
+    uf.destino = null;
+    uf.posicao = null;
+    uf.vj = null;
+    uf.vk = null;
+    uf.qj = null;
+    uf.qk = null;
+}
+
+function verificaSeJaTerminou() {
+    let qtdInstrucaoNaoTerminada = 0;
+    for (let i = 0; i < reorderBuffer.estadoInstrucoes.length; i++) {
+        const element = reorderBuffer.estadoInstrucoes[i];
+
+        if (element.write === null) qtdInstrucaoNaoTerminada++;
+    }
+
+    return qtdInstrucaoNaoTerminada > 0 ? false : true;
+}
+
+function issueNovaInstrucao() {
+
+    let novaInstrucao = getNovaInstrucao();
+
+    if (novaInstrucao) {
+        let ufInstrucao = verificaUFInstrucao(
+            novaInstrucao.instrucao
+        );
+        let UFParaUsar = getUFVazia(ufInstrucao);
+        console.log(JSON.stringify(UFParaUsar))
+        if (UFParaUsar) {
+            if (
+                UFParaUsar.tipoUnidade == 'Load' ||
+                UFParaUsar.tipoUnidade == 'Store'
+            )
+                alocaUfMem(
+                    UFParaUsar,
+                    novaInstrucao.instrucao,
+                    novaInstrucao
+                );
+            else
+                alocaUF(
+                    UFParaUsar,
+                    novaInstrucao.instrucao,
+                    novaInstrucao
+                );
+
+            novaInstrucao.issue = clock;
+
+            if (
+                UFParaUsar.tipoUnidade !== 'Store' &&
+                UFParaUsar.operacao !== 'BEQ' &&
+                UFParaUsar.operacao !== 'BEQ'
+            )
+                escreveEstacaoRegistrador(
+                    novaInstrucao.instrucao,
+                    UFParaUsar.nome
+                );
+        }
+    }
+}
+
+function executaInstrucao() {
+    for (let key in memoryReservationStation.unidadesFuncionaisMemoria) {
+        var ufMem = memoryReservationStation.unidadesFuncionaisMemoria[key];
+
+        if (
+            ufMem.ocupado === true &&
+            ufMem.qi === null &&
+            ufMem.qj === null
+        ) {
+            ufMem.tempo = ufMem.tempo - 1;
+            console.log('estado Instrucao', ufMem.estadoInstrucao);
+
+            if (ufMem.tempo === 0) {
+                ufMem.estadoInstrucao.exeCompleta = clock;
+                ufMem.estadoInstrucao.busy = false;
+            }
+        }
+    }
+
+    for (let key in reservationStation.unidadesFuncionais) {
+        var uf = reservationStation.unidadesFuncionais[key];
+
+        if (uf.ocupado === true && uf.vj !== null && uf.vk !== null) {
+            uf.tempo = uf.tempo - 1;
+            uf.estadoInstrucao.busy = true;
+
+            if (uf.tempo === 0) {
+                uf.estadoInstrucao.exeCompleta = clock;
+                uf.estadoInstrucao.busy = false;
+            }
+        }
+    }
+}
+
+function escreveInstrucao() {
+    for (let key in memoryReservationStation.unidadesFuncionaisMemoria) {
+        const ufMem = memoryReservationStation.unidadesFuncionaisMemoria[key];
+
+        if (ufMem.ocupado === true) {
+            if (ufMem.tempo === -1) {
+                ufMem.estadoInstrucao.write = clock;
+
+                let valorReg =
+                    estacaoRegistradores[
+                    ufMem.instrucao.registradorR
+                    ];
+
+                if (valorReg === ufMem.nome) {
+                    estacaoRegistradores[
+                        ufMem.instrucao.registradorR
+                    ] = 'VAL(' + ufMem.nome + ')';
+                }
+
+                liberaUFEsperandoResultado(ufMem);
+                desalocaUFMem(ufMem);
+            }
+        }
+    }
+
+    for (let key in reservationStation.unidadesFuncionais) {
+        const uf = reservationStation.unidadesFuncionais[key];
+
+        if (uf.ocupado === true) {
+            if (uf.tempo === -1) {
+                uf.estadoInstrucao.write = clock;
+
+                let valorReg =
+                    estacaoRegistradores[
+                    uf.instrucao.registradorR
+                    ];
+
+                if (valorReg === uf.nome) {
+                    estacaoRegistradores[
+                        uf.instrucao.registradorR
+                    ] = 'VAL(' + uf.nome + ')';
+                }
+
+                liberaUFEsperandoResultado(uf);
+                desalocaUF(uf);
+            }
+        }
+    }
+}
+
+function executa_ciclo() {
+
+    clock++;
+
+    issueNovaInstrucao();
+    executaInstrucao();
+    escreveInstrucao();
+
+    console.log('Estado instrução:');
+    console.log(JSON.stringify(reorderBuffer.estadoInstrucoes, null, 2));
+
+    console.log('\nUnidades Funcionais memória:');
+    console.log(JSON.stringify(memoryReservationStation.unidadesFuncionaisMemoria, null, 2));
+
+    console.log('\nUnidades Funcionais:');
+    console.log(JSON.stringify(reservationStation.unidadesFuncionais, null, 2));
+
+    console.log('Estado registradores:');
+    console.log(JSON.stringify(estacaoRegistradores, null, 2));
+
+    return verificaSeJaTerminou();
+}
 
 const config = new Config()
 
@@ -279,7 +504,8 @@ const reservationStation = new ReservationStation(config)
 
 const memoryReservationStation = new MemoryReservationStation(config)
 
-var ufVazia = getUFVazia(verificaUFInstrucao(getNovaInstrucao().instrucao))
+executa_ciclo()
+executa_ciclo()
+executa_ciclo()
+// executa_ciclo()
 
-console.log(reorderBuffer.estadoInstrucoes[0].posicao)
-console.log(alocaUfMem(ufVazia, getNovaInstrucao().instrucao, reorderBuffer.estadoInstrucoes[0]))

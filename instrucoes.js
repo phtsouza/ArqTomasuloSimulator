@@ -1,7 +1,7 @@
 export const instrucoes = [
     {
         indice: 0,
-        nome: "SW",
+        nome: "LD",
         r: "F6",
         s: "32",
         t: "R2"
