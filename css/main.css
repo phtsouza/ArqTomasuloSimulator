@@ -1,0 +1,87 @@
+/* CSS de Limpeza */
+
+/* Redefine a margem e preenchimento para zero em todos os elementos */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Define a fonte e tamanho padrão */
+body {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+}
+
+/* Remove a decoração de links */
+a {
+    text-decoration: none;
+}
+
+/* Remove a lista de estilos padrão */
+ul,
+ol {
+    list-style: none;
+}
+
+/* Redefine a aparência do botão */
+button {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+/* Redefine a aparência das entradas de formulário */
+input,
+textarea {
+    border: none;
+    outline: none;
+}
+
+/* Redefine a aparência do texto destacado */
+strong,
+b {
+    font-weight: bold;
+}
+
+/* Redefine a aparência dos cabeçalhos */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Redefine a aparência das imagens */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.table {
+    width: 100%;
+    padding: 12px 24px;
+}
+
+.table h2 {
+    text-align: center;
+}
+
+.table ul {
+    list-style: none;
+    border: 1px solid black;
+
+}
+
+.table ul li {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    padding: 8px;
+    border-bottom: 1px solid black;
+}

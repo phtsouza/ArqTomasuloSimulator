@@ -509,3 +509,43 @@ executa_ciclo()
 executa_ciclo()
 // executa_ciclo()
 
+export function attTables() {
+    console.log("entrou")
+}
+
+// export function attTables() {
+//     // Obtenha a referência à lista ul
+//     const myList = document.getElementById('reorder-buffer');
+
+//     // Dados dos itens a serem adicionados
+//     const itemsData = [
+//         { number: 1, titles: ['No', 'LD', 'Issuer', 'F6', 'Mem ...'] },
+//         { number: 2, titles: ['No', 'LD', 'Issuer', 'F2', 'Mem ...'] }
+//     ];
+
+//     // Iterar sobre os dados e adicionar os itens à lista
+//     itemsData.forEach(itemData => {
+//         const listItem = createListItem(itemData.number, itemData.titles);
+//         myList.appendChild(listItem);
+//     });
+// }
+
+// // Função auxiliar para criar um item da lista com base nos dados fornecidos
+// function createListItem(number, titles) {
+//     // Cria o elemento <li>
+//     const listItem = document.createElement('li');
+
+//     // Cria os elementos <p> e atribui o conteúdo
+//     titles.forEach(title => {
+//         const p = document.createElement('p');
+//         p.textContent = title;
+//         listItem.appendChild(p);
+//     });
+
+//     // Cria o elemento <p> para o número
+//     const pNumber = document.createElement('p');
+//     pNumber.textContent = number;
+//     listItem.insertBefore(pNumber, listItem.firstChild);
+
+//     return listItem;
+// }
