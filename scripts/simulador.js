@@ -1,4 +1,4 @@
-import { instrucoes } from "./instrucoes";
+import { instrucoes } from "./instrucoes.js";
 
 class Config {
     constructor() {
@@ -90,10 +90,11 @@ class MemoryReservationStation {
 }
 
 let clock = 0
+let flagDesvio = false
 
 let estacaoRegistradores = {};
 
-for (let i = 0; i < 32; i += 2) {
+for (let i = 0; i < 11; i += 1) {
     estacaoRegistradores['F' + i] = null;
 }
 
@@ -166,7 +167,7 @@ function getCiclos(instrucao) {
         case 'MUL':
             return parseInt(config.ciclos['Mult']);
         case 'DIV':
-            return parseInt(config.ciclos['Mult']);
+            return parseInt(config.ciclos['Div']);
         case 'LD':
             return parseInt(config.ciclos['Load']);
         case 'SW':
@@ -473,13 +474,70 @@ function escreveInstrucao() {
     }
 }
 
-function executa_ciclo() {
+function verificaDesvio() { 
+    const instDesvio = reorderBuffer.estadoInstrucoes.map((objeto, index) => ({ ...objeto, index })).filter(item => item.instrucao.operacao === 'BEQ')[0]
+    console.log("instDesvio", instDesvio)
+    if(instDesvio.exeCompleta) { // se a instrução estiver completa
+        let verificaSeTodasAcimaEscreveram = true;
+        for(let i = 0; i < instDesvio.index; i++) {
+            if(reorderBuffer.estadoInstrucoes[i].write === null) 
+                verificaSeTodasAcimaEscreveram = false
+        } 
+        if(!verificaSeTodasAcimaEscreveram) return null
+        
+        const j = reorderBuffer.estadoInstrucoes.length
+        const instrucoesALimpar = []
+        for(let i = instDesvio.index + 1; i < j; i++) {
+            if(reorderBuffer.estadoInstrucoes[i].issue != null)
+                instrucoesALimpar.push(reorderBuffer.estadoInstrucoes[i])
+        }
+        const instrucoesALimparFormatadas = instrucoesALimpar.map(item => `${item.instrucao.operacao}${item.instrucao.registradorR}${item.instrucao.registradorS}${item.instrucao.registradorT}`)
+        console.log("INSTS", instrucoesALimparFormatadas)
+
+        for(let key in reservationStation.unidadesFuncionais) {
+            const item = reservationStation.unidadesFuncionais[key]
+            if(!item.instrucao) continue
+            if(instrucoesALimparFormatadas.includes(`${item.instrucao.operacao}${item.instrucao.registradorR}${item.instrucao.registradorS}${item.instrucao.registradorT}`))
+                item.instrucao = null
+                item.estadoInstrucao = null
+                item.ocupado = false
+                item.tempo = null
+                item.operacao = null
+                item.vj = null
+                item.vk = null
+                item.qj = null
+                item.qk = null
+                item.destino = null
+                item.posicao = null
+        }
+
+        for(let key in memoryReservationStation.unidadesFuncionaisMemoria) {
+            const item = memoryReservationStation.unidadesFuncionaisMemoria[key]
+            if(!item.instrucao) continue
+            if(instrucoesALimparFormatadas.includes(`${item.instrucao.operacao}${item.instrucao.registradorR}${item.instrucao.registradorS}${item.instrucao.registradorT}`))
+                item.instrucao = null
+                item.estadoInstrucao = null
+                item.ocupado = false
+                item.qi = null
+                item.qj = null
+                item.endereco = null
+                item.destino = null
+                item.posicao = null
+        }
+        reorderBuffer.estadoInstrucoes.splice(instDesvio.index + 1, j - instDesvio.index);
+        reorderBuffer.estadoInstrucoes[instDesvio.index].write = clock
+    }
+}
+
+export function executa_ciclo() {
 
     clock++;
 
     issueNovaInstrucao();
     executaInstrucao();
     escreveInstrucao();
+
+    flagDesvio && verificaDesvio();
 
     console.log('Estado instrução:');
     console.log(JSON.stringify(reorderBuffer.estadoInstrucoes, null, 2));
@@ -504,48 +562,237 @@ const reservationStation = new ReservationStation(config)
 
 const memoryReservationStation = new MemoryReservationStation(config)
 
-executa_ciclo()
-executa_ciclo()
-executa_ciclo()
+// executa_ciclo()
+// executa_ciclo()
+// executa_ciclo()
+// executa_ciclo()
+// executa_ciclo()
+// executa_ciclo()
+// executa_ciclo()
+// executa_ciclo()
 // executa_ciclo()
 
-export function attTables() {
-    console.log("entrou")
+function returnState(instruction) {
+    if(instruction.write) {
+        return "Commit";
+    } else if(instruction.exeCompleta) {
+        return "Write Result"
+    } else if(instruction.issue) {
+        return "Execute"
+    } else {
+        return "Issue"
+    }
 }
 
-// export function attTables() {
-//     // Obtenha a referência à lista ul
-//     const myList = document.getElementById('reorder-buffer');
+function getBusyInstruction(instruction) {
+    if(instruction.write) {
+        return false;
+    } else if(instruction.exeCompleta) {
+        return true
+    } else if(instruction.issue) {
+        return true
+    } else {
+        return false
+    }
+}
 
-//     // Dados dos itens a serem adicionados
-//     const itemsData = [
-//         { number: 1, titles: ['No', 'LD', 'Issuer', 'F6', 'Mem ...'] },
-//         { number: 2, titles: ['No', 'LD', 'Issuer', 'F2', 'Mem ...'] }
-//     ];
+function attTableReorderBuffer() {
+    // Obtenha a referência à lista ul
+    const myList = document.getElementById('reorder-buffer');
+    myList.innerHTML = '<li>' + 
+    '<p>Entry</p>' +
+    '<p>Busy</p>' + 
+    '<p>Instruction</p>' + 
+    '<p>State</p>' +
+    '<p>Destination</p>' +
+    '</li>';
+    const listReorderBuffer = [];
+    console.log("reorderBuffer.estadoInstrucoes", reorderBuffer.estadoInstrucoes)
 
-//     // Iterar sobre os dados e adicionar os itens à lista
-//     itemsData.forEach(itemData => {
-//         const listItem = createListItem(itemData.number, itemData.titles);
-//         myList.appendChild(listItem);
-//     });
-// }
+    // Dados dos itens a serem adicionados
+    reorderBuffer.estadoInstrucoes.forEach((item, index) => {
+        console.log("item.busy", item.busy)
+        listReorderBuffer.push({
+            number: index,
+            titles: [
+                getBusyInstruction(item) ? '✔️' : '❌',
+                `${item.instrucao.operacao} ${item.instrucao.registradorR} ${item.instrucao.registradorS} ${item.instrucao.registradorT}`,
+                returnState(item),
+                item.instrucao.registradorR,
+            ]
+        })
+    })
 
-// // Função auxiliar para criar um item da lista com base nos dados fornecidos
-// function createListItem(number, titles) {
-//     // Cria o elemento <li>
-//     const listItem = document.createElement('li');
+    // Iterar sobre os dados e adicionar os itens à lista
+    listReorderBuffer.forEach(itemData => {
+        const listItem = createListItem(itemData.number, itemData.titles);
+        myList.appendChild(listItem);
+    });
+}
 
-//     // Cria os elementos <p> e atribui o conteúdo
-//     titles.forEach(title => {
-//         const p = document.createElement('p');
-//         p.textContent = title;
-//         listItem.appendChild(p);
-//     });
+function attTableReservationStations() {
+    // Obtenha a referência à lista ul
+    const myList = document.getElementById('reservation-stations');
+    myList.innerHTML = '<li>' + 
+    '<p>Name</p>' +
+    '<p>Busy</p>' + 
+    '<p>Op</p>' + 
+    '<p>Vj</p>' +
+    '<p>Vk</p>' +
+    '<p>Qj</p>' +
+    '<p>Qk</p>' +
+    '<p>A (Endereço)</p>' +
+    '<p>Dest</p>' +
+    '</li>';
+    const reservationStationsNames = ["Add1", "Add2", "Add3", "Desvio1", "Desvio2", "Mult1", "Mult2", "Load1", "Load2", "Store1", "Store2", "Store3"];
 
-//     // Cria o elemento <p> para o número
-//     const pNumber = document.createElement('p');
-//     pNumber.textContent = number;
-//     listItem.insertBefore(pNumber, listItem.firstChild);
+    // Dados dos itens a serem adicionados
+    const listReservationsStations = [];
 
-//     return listItem;
-// }
+    reservationStationsNames.forEach((item, index) => {
+        if(item.includes("Store") || item.includes("Load")) {
+            listReservationsStations.push({
+                number: index,
+                titles: [
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].nome,
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].ocupado ? '✔️' : '❌',
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].operacao,
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].vj,
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].vk,
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].qj,
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].qk,
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].endereco,
+                    memoryReservationStation.unidadesFuncionaisMemoria[item].posicao != null ? `#${memoryReservationStation.unidadesFuncionaisMemoria[item].posicao}` : ""
+                ]
+            })
+        } else {
+            listReservationsStations.push({
+                number: index,
+                titles: [
+                     reservationStation.unidadesFuncionais[item].nome,
+                     reservationStation.unidadesFuncionais[item].ocupado ? '✔️' : '❌' ,
+                     reservationStation.unidadesFuncionais[item].operacao,
+                     reservationStation.unidadesFuncionais[item].vj,
+                     reservationStation.unidadesFuncionais[item].vk,
+                     reservationStation.unidadesFuncionais[item].qj,
+                     reservationStation.unidadesFuncionais[item].qk,
+                     reservationStation.unidadesFuncionais[item].endereco,
+                     reservationStation.unidadesFuncionais[item].posicao != null ? `#${reservationStation.unidadesFuncionais[item].posicao}` : ""
+                ]
+            })
+        }
+    })
+    // Iterar sobre os dados e adicionar os itens à lista
+    listReservationsStations.forEach(itemData => {
+        const listItem = createListItem(itemData.number, itemData.titles, false);
+        myList.appendChild(listItem);
+    });
+
+}
+
+function attTableFPRegisterStatus() {
+    // Obtenha a referência à lista ul
+    const myList = document.getElementById('fp-register-stations');
+    myList.innerHTML = '<li>' + 
+    '<p>Field</p>' +
+    '<p>F0</p>' + 
+    '<p>F1</p>' + 
+    '<p>F2</p>' +
+    '<p>F3</p>' +
+    '<p>F4</p>' +
+    '<p>F5</p>' +
+    '<p>F6</p>' +
+    '<p>F7</p>' +
+    '<p>F8</p>' +
+    '<p>F9</p>' +
+    '<p>F10</p>' +
+    '</li>';
+    const listReorder = ["", "", "", "", "", "", "", "", "", "", ""];
+    const listBusy = ["❌", "❌", "❌", "❌", "❌", "❌", "❌", "❌", "❌", "❌", "❌"];
+    const listFPRegisterStatus = [];
+    console.log('estacaoRegistradores', estacaoRegistradores)
+
+    // Dados dos itens a serem adicionados
+    
+    listFPRegisterStatus.push({
+        titles: [
+            'Qi',
+            estacaoRegistradores["F0"],
+            estacaoRegistradores["F1"],
+            estacaoRegistradores["F2"],
+            estacaoRegistradores["F3"],
+            estacaoRegistradores["F4"],
+            estacaoRegistradores["F5"],
+            estacaoRegistradores["F6"],
+            estacaoRegistradores["F7"],
+            estacaoRegistradores["F8"],
+            estacaoRegistradores["F9"],
+            estacaoRegistradores["F10"],
+        ]
+    })
+
+     
+
+    for(let i in reorderBuffer.estadoInstrucoes) {
+        const inst = reorderBuffer.estadoInstrucoes[i];
+        console.log('inst', inst)
+        if(inst['issue'] != null) {
+            console.log("inst['instrucao'].registradorR", inst['write'])
+            listReorder[Number(inst['instrucao'].registradorR.substring(1))] = inst['write'] ? '' : `${i}`
+            listBusy[Number(inst['instrucao'].registradorR.substring(1))] = inst['write'] ? '❌' : '✔️'
+        }
+    }
+
+    listFPRegisterStatus.push({
+        titles: [
+            'Reorder#',
+            ...listReorder
+        ]
+    })
+    listFPRegisterStatus.push( {
+        titles: [
+            "Busy",
+            ...listBusy
+        ] 
+    })
+
+    // Iterar sobre os dados e adicionar os itens à lista
+    listFPRegisterStatus.forEach(itemData => {
+        const listItem = createListItem(itemData.number, itemData.titles, false);
+        myList.appendChild(listItem);
+    });
+}
+
+function attClock() {
+    const clockElement = document.getElementById("clock-text");
+    clockElement.innerHTML = `Clock: ${clock}`
+}
+
+export function attTables() {
+    attTableReorderBuffer()
+    attTableReservationStations()
+    attTableFPRegisterStatus()
+    attClock()
+}
+
+// Função auxiliar para criar um item da lista com base nos dados fornecidos
+function createListItem(number, titles, showIndex = true) {
+    // Cria o elemento <li>
+    const listItem = document.createElement('li');
+
+    // Cria os elementos <p> e atribui o conteúdo
+    titles.forEach(title => {
+        const p = document.createElement('p');
+        p.textContent = title;
+        listItem.appendChild(p);
+    });
+
+    // Cria o elemento <p> para o número
+    if(showIndex) {
+        const pNumber = document.createElement('p');
+        pNumber.textContent = number;
+        listItem.insertBefore(pNumber, listItem.firstChild);
+    }
+
+    return listItem;
+}

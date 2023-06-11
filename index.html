@@ -10,18 +10,24 @@
 </head>
 
 <body>
+    <h1>Algoritmo de Tomasulo</h1>
+    <div id="clock">
+        <p id="clock-text">Clock: 0</p>
+    </div>
     <div class="table">
         <h2>Reorder Buffer</h2>
-        <ul id="reorder-buffer">
-            <li>
-                <p>Entry</p>
-                <p>Busy</p>
-                <p>Instruction</p>
-                <p>State</p>
-                <p>Destination</p>
-                <p>Value</p>
-            </li>
-        </ul>
+        <ul id="reorder-buffer"></ul>
+    </div>
+    <div class="table">
+        <h2>Reservation Stations</h2>
+        <ul id="reservation-stations"></ul>
+    </div>
+    <div class="table">
+        <h2>FP Register Status</h2>
+        <ul id="fp-register-stations"></ul>
+    </div>
+    <div class="wrapper-button">
+        <button id="next-button">Próximo</button>
     </div>
 
     <script type="module" src="./scripts/main.js"></script>

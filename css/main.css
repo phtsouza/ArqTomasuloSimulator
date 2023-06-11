@@ -61,6 +61,26 @@ img {
     height: auto;
 }
 
+body h1 {
+    text-align: center;
+    margin: 24px 0 12px;
+}
+
+body #clock {
+    width: 100px;
+    margin: 0 auto;
+}
+
+body #clock-text {
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #b3971d;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 24px;
+}
+
 .table {
     width: 100%;
     padding: 12px 24px;
@@ -84,4 +104,31 @@ img {
     text-align: center;
     padding: 8px;
     border-bottom: 1px solid black;
+}
+
+.wrapper-button {
+    display: flex;
+}
+
+#next-button {
+    margin: 0 auto;
+    text-align: center;
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #439093;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 5rem;
+}
+
+#reorder-buffer li p {
+    width: calc(100%/5);
+}
+
+#reservation-stations li p {
+    width: calc(100%/9);
+}
+
+#fp-register-stations li p {
+    width: calc(100%/12);
 }
