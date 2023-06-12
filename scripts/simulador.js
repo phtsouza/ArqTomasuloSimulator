@@ -796,3 +796,7 @@ function createListItem(number, titles, showIndex = true) {
 
     return listItem;
 }
+
+export function toogleFlag() {
+    flagDesvio = !flagDesvio
+}
