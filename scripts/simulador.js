@@ -2,7 +2,7 @@ import { instrucoes } from "./instrucoes.js";
 
 class Config {
     constructor() {
-        this.numInstrucoes = 6
+        this.numInstrucoes = instrucoes.length
         this.ciclos = { Add: "1", Desvio: "1", Div: "15", Load: "2", Mult: "1", Store: "2" }
         this.unidades = { Add: "3", Desvio: "2", Mult: "2" }
         this.unidadesMem = { Load: "2", Store: "3" }
@@ -714,22 +714,22 @@ function attTableFPRegisterStatus() {
 
     // Dados dos itens a serem adicionados
     
-    listFPRegisterStatus.push({
-        titles: [
-            'Qi',
-            estacaoRegistradores["F0"],
-            estacaoRegistradores["F1"],
-            estacaoRegistradores["F2"],
-            estacaoRegistradores["F3"],
-            estacaoRegistradores["F4"],
-            estacaoRegistradores["F5"],
-            estacaoRegistradores["F6"],
-            estacaoRegistradores["F7"],
-            estacaoRegistradores["F8"],
-            estacaoRegistradores["F9"],
-            estacaoRegistradores["F10"],
-        ]
-    })
+    // listFPRegisterStatus.push({
+    //     titles: [
+    //         'Qi',
+    //         estacaoRegistradores["F0"],
+    //         estacaoRegistradores["F1"],
+    //         estacaoRegistradores["F2"],
+    //         estacaoRegistradores["F3"],
+    //         estacaoRegistradores["F4"],
+    //         estacaoRegistradores["F5"],
+    //         estacaoRegistradores["F6"],
+    //         estacaoRegistradores["F7"],
+    //         estacaoRegistradores["F8"],
+    //         estacaoRegistradores["F9"],
+    //         estacaoRegistradores["F10"],
+    //     ]
+    // })
 
      
 
@@ -795,4 +795,8 @@ function createListItem(number, titles, showIndex = true) {
     }
 
     return listItem;
+}
+
+export function toogleFlag() {
+    flagDesvio = !flagDesvio
 }

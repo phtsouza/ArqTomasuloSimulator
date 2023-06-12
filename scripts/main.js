@@ -1,4 +1,4 @@
-import { attTables, executa_ciclo } from "./simulador.js"
+import { attTables, executa_ciclo, toogleFlag } from "./simulador.js"
 let flag = false
 
 window.addEventListener("DOMContentLoaded", attTables)
@@ -22,3 +22,5 @@ document.getElementById("next-button").addEventListener("click", () => {
     flag ? acabou() : attTables();
     if(fim) flag = true
 });
+
+document.getElementById("swtch").addEventListener("click", toogleFlag)
