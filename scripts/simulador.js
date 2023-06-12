@@ -98,7 +98,7 @@ for (let i = 0; i < 11; i += 1) {
     estacaoRegistradores['F' + i] = null;
 }
 
-for (let i = 0; i < 32; i += 1) {
+for (let i = 0; i < 11; i += 1) {
     estacaoRegistradores['R' + i] = null;
 }
 
@@ -695,17 +695,17 @@ function attTableFPRegisterStatus() {
     const myList = document.getElementById('fp-register-stations');
     myList.innerHTML = '<li>' + 
     '<p>Field</p>' +
-    '<p>F0</p>' + 
-    '<p>F1</p>' + 
-    '<p>F2</p>' +
-    '<p>F3</p>' +
-    '<p>F4</p>' +
-    '<p>F5</p>' +
-    '<p>F6</p>' +
-    '<p>F7</p>' +
-    '<p>F8</p>' +
-    '<p>F9</p>' +
-    '<p>F10</p>' +
+    '<p>R0</p>' + 
+    '<p>R1</p>' + 
+    '<p>R2</p>' +
+    '<p>R3</p>' +
+    '<p>R4</p>' +
+    '<p>R5</p>' +
+    '<p>R6</p>' +
+    '<p>R7</p>' +
+    '<p>R8</p>' +
+    '<p>R9</p>' +
+    '<p>R10</p>' +
     '</li>';
     const listReorder = ["", "", "", "", "", "", "", "", "", "", ""];
     const listBusy = ["❌", "❌", "❌", "❌", "❌", "❌", "❌", "❌", "❌", "❌", "❌"];
