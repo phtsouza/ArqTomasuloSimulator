@@ -353,10 +353,10 @@ function issueNovaInstrucao() {
     let novaInstrucao = getNovaInstrucao();
 
     if (novaInstrucao) {
-        let ufInstrucao = verificaUFInstrucao(
+        let ufInstrucao = verificaUFInstrucao( // Retorna a UF da instrução
             novaInstrucao.instrucao
         );
-        let UFParaUsar = getUFVazia(ufInstrucao);
+        let UFParaUsar = getUFVazia(ufInstrucao); // Retorna a UF disponível
         console.log(JSON.stringify(UFParaUsar))
         if (UFParaUsar) {
             if (
@@ -429,7 +429,7 @@ function escreveInstrucao() {
         const ufMem = memoryReservationStation.unidadesFuncionaisMemoria[key];
 
         if (ufMem.ocupado === true) {
-            if (ufMem.tempo === -1) {
+            if (ufMem.tempo === -1) { // Instrucao executada
                 ufMem.estadoInstrucao.write = clock;
 
                 let valorReg =
@@ -476,7 +476,7 @@ function escreveInstrucao() {
 
 function verificaDesvio() { 
     const instDesvio = reorderBuffer.estadoInstrucoes.map((objeto, index) => ({ ...objeto, index })).filter(item => item.instrucao.operacao === 'BEQ')[0]
-    console.log("instDesvio", instDesvio)
+
     if(instDesvio.exeCompleta) { // se a instrução estiver completa
         let verificaSeTodasAcimaEscreveram = true;
         for(let i = 0; i < instDesvio.index; i++) {
